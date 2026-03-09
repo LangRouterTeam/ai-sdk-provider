@@ -1251,7 +1251,7 @@ describe('doStream', () => {
 
     // First delta should have reasoning_details from first chunk
     expect(reasoningDeltaElements[0]?.providerMetadata).toEqual({
-      langrouterUsage: {
+      langrouter: {
         reasoning_details: [
           {
             type: ReasoningDetailType.Text,
