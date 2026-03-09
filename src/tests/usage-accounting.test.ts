@@ -1,0 +1,555 @@
+import type { LangRouterChatSettings } from '../types/langrouter-chat-settings';
+
+import { createTestServer } from '@ai-sdk/test-server';
+import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
+import { LangRouterChatLanguageModel } from '../chat';
+
+describe('LangRouter Usage Accounting', () => {
+  const server = createTestServer({
+    'https://api.langrouter.ai/chat/completions': {
+      response: { type: 'json-value', body: {} },
+    },
+  });
+
+  beforeAll(() => server.server.start());
+  afterEach(() => server.server.reset());
+  afterAll(() => server.server.stop());
+
+  function prepareJsonResponse(includeUsage = true) {
+    const response = {
+      id: 'test-id',
+      model: 'test-model',
+      choices: [
+        {
+          message: {
+            role: 'assistant',
+            content: 'Hello, I am an AI assistant.',
+          },
+          index: 0,
+          finish_reason: 'stop',
+        },
+      ],
+      usage: includeUsage
+        ? {
+            prompt_tokens: 10,
+            prompt_tokens_details: {
+              cached_tokens: 5,
+            },
+            completion_tokens: 20,
+            completion_tokens_details: {
+              reasoning_tokens: 8,
+            },
+            total_tokens: 30,
+            cost: 0.0015,
+            cost_details: {
+              upstream_inference_cost: 0.0019,
+            },
+          }
+        : undefined,
+    };
+
+    server.urls['https://api.langrouter.ai/chat/completions']!.response = {
+      type: 'json-value',
+      body: response,
+    };
+  }
+
+  it('should include usage parameter in the request when enabled', async () => {
+    prepareJsonResponse();
+
+    // Create model with usage accounting enabled
+    const settings: LangRouterChatSettings = {
+      usage: { include: true },
+    };
+
+    const model = new LangRouterChatLanguageModel('test-model', settings, {
+      provider: 'langrouter.chat',
+      url: () => 'https://api.langrouter.ai/chat/completions',
+      headers: () => ({}),
+      compatibility: 'strict',
+      fetch: global.fetch,
+    });
+
+    // Call the model
+    await model.doGenerate({
+      prompt: [
+        {
+          role: 'user',
+          content: [{ type: 'text', text: 'Hello' }],
+        },
+      ],
+      maxOutputTokens: 100,
+    });
+
+    // Check request contains usage parameter
+    const requestBody = (await server.calls[0]!.requestBodyJson) as Record<
+      string,
+      unknown
+    >;
+    expect(requestBody).toBeDefined();
+    expect(requestBody).toHaveProperty('usage');
+    expect(requestBody.usage).toEqual({ include: true });
+  });
+
+  it('should include provider-specific metadata in response when usage accounting is enabled', async () => {
+    prepareJsonResponse();
+
+    // Create model with usage accounting enabled
+    const settings: LangRouterChatSettings = {
+      usage: { include: true },
+    };
+
+    const model = new LangRouterChatLanguageModel('test-model', settings, {
+      provider: 'langrouter.chat',
+      url: () => 'https://api.langrouter.ai/chat/completions',
+      headers: () => ({}),
+      compatibility: 'strict',
+      fetch: global.fetch,
+    });
+
+    // Call the model
+    const result = await model.doGenerate({
+      prompt: [
+        {
+          role: 'user',
+          content: [{ type: 'text', text: 'Hello' }],
+        },
+      ],
+      maxOutputTokens: 100,
+    });
+
+    // Check result contains provider metadata
+    expect(result.providerMetadata).toBeDefined();
+    const providerData = result.providerMetadata;
+
+    // Check for LangRouter usage data
+    expect(providerData?.langrouter).toBeDefined();
+    const langrouterData = providerData?.langrouter as Record<string, unknown>;
+    expect(langrouterData.usage).toBeDefined();
+
+    const usage = langrouterData.usage;
+    expect(usage).toMatchObject({
+      promptTokens: 10,
+      completionTokens: 20,
+      totalTokens: 30,
+      cost: 0.0015,
+      costDetails: {
+        upstreamInferenceCost: 0.0019,
+      },
+      promptTokensDetails: {
+        cachedTokens: 5,
+      },
+      completionTokensDetails: {
+        reasoningTokens: 8,
+      },
+    });
+  });
+
+  it('should not include provider-specific metadata when usage accounting is disabled', async () => {
+    prepareJsonResponse();
+
+    // Create model with usage accounting disabled
+    const settings: LangRouterChatSettings = {
+      // No usage property
+    };
+
+    const model = new LangRouterChatLanguageModel('test-model', settings, {
+      provider: 'langrouter.chat',
+      url: () => 'https://api.langrouter.ai/chat/completions',
+      headers: () => ({}),
+      compatibility: 'strict',
+      fetch: global.fetch,
+    });
+
+    // Call the model
+    const result = await model.doGenerate({
+      prompt: [
+        {
+          role: 'user',
+          content: [{ type: 'text', text: 'Hello' }],
+        },
+      ],
+      maxOutputTokens: 100,
+    });
+
+    // Verify that LangRouter metadata is not included
+    expect(result.providerMetadata?.langrouter?.usage).toStrictEqual({
+      promptTokens: 10,
+      completionTokens: 20,
+      totalTokens: 30,
+      cost: 0.0015,
+      costDetails: {
+        upstreamInferenceCost: 0.0019,
+      },
+      promptTokensDetails: {
+        cachedTokens: 5,
+      },
+      completionTokensDetails: {
+        reasoningTokens: 8,
+      },
+    });
+  });
+
+  it('should exclude token details from providerMetadata when not present in response', async () => {
+    // Prepare a response without token details
+    const response = {
+      id: 'test-id',
+      model: 'test-model',
+      choices: [
+        {
+          message: {
+            role: 'assistant',
+            content: 'Hello, I am an AI assistant.',
+          },
+          index: 0,
+          finish_reason: 'stop',
+        },
+      ],
+      usage: {
+        prompt_tokens: 10,
+        completion_tokens: 20,
+        total_tokens: 30,
+        cost: 0.0015,
+        // No prompt_tokens_details, completion_tokens_details, or cost_details
+      },
+    };
+
+    server.urls['https://api.langrouter.ai/chat/completions']!.response = {
+      type: 'json-value',
+      body: response,
+    };
+
+    const settings: LangRouterChatSettings = {
+      usage: { include: true },
+    };
+
+    const model = new LangRouterChatLanguageModel('test-model', settings, {
+      provider: 'langrouter.chat',
+      url: () => 'https://api.langrouter.ai/chat/completions',
+      headers: () => ({}),
+      compatibility: 'strict',
+      fetch: global.fetch,
+    });
+
+    const result = await model.doGenerate({
+      prompt: [
+        {
+          role: 'user',
+          content: [{ type: 'text', text: 'Hello' }],
+        },
+      ],
+      maxOutputTokens: 100,
+    });
+
+    const usage = (
+      result.providerMetadata?.langrouter as Record<string, unknown>
+    )?.usage;
+
+    // Should include basic token counts
+    expect(usage).toMatchObject({
+      promptTokens: 10,
+      completionTokens: 20,
+      totalTokens: 30,
+      cost: 0.0015,
+    });
+
+    // Should NOT include token details when not present in response
+    expect(usage).not.toHaveProperty('promptTokensDetails');
+    expect(usage).not.toHaveProperty('completionTokensDetails');
+    expect(usage).not.toHaveProperty('costDetails');
+  });
+
+  it('should include only present token details in providerMetadata', async () => {
+    // Prepare a response with only cached_tokens (no reasoning or cost details)
+    const response = {
+      id: 'test-id',
+      model: 'test-model',
+      choices: [
+        {
+          message: {
+            role: 'assistant',
+            content: 'Hello, I am an AI assistant.',
+          },
+          index: 0,
+          finish_reason: 'stop',
+        },
+      ],
+      usage: {
+        prompt_tokens: 10,
+        prompt_tokens_details: {
+          cached_tokens: 5,
+        },
+        completion_tokens: 20,
+        total_tokens: 30,
+        cost: 0.0015,
+        // No completion_tokens_details or cost_details
+      },
+    };
+
+    server.urls['https://api.langrouter.ai/chat/completions']!.response = {
+      type: 'json-value',
+      body: response,
+    };
+
+    const settings: LangRouterChatSettings = {
+      usage: { include: true },
+    };
+
+    const model = new LangRouterChatLanguageModel('test-model', settings, {
+      provider: 'langrouter.chat',
+      url: () => 'https://api.langrouter.ai/chat/completions',
+      headers: () => ({}),
+      compatibility: 'strict',
+      fetch: global.fetch,
+    });
+
+    const result = await model.doGenerate({
+      prompt: [
+        {
+          role: 'user',
+          content: [{ type: 'text', text: 'Hello' }],
+        },
+      ],
+      maxOutputTokens: 100,
+    });
+
+    const usage = (
+      result.providerMetadata?.langrouter as Record<string, unknown>
+    )?.usage;
+
+    // Should include promptTokensDetails since cached_tokens is present
+    expect(usage).toHaveProperty('promptTokensDetails');
+    expect((usage as Record<string, unknown>).promptTokensDetails).toEqual({
+      cachedTokens: 5,
+    });
+
+    // Should NOT include completionTokensDetails or costDetails
+    expect(usage).not.toHaveProperty('completionTokensDetails');
+    expect(usage).not.toHaveProperty('costDetails');
+  });
+
+  it('should include raw usage in usage.raw field with original snake_case format', async () => {
+    prepareJsonResponse();
+
+    const settings: LangRouterChatSettings = {
+      usage: { include: true },
+    };
+
+    const model = new LangRouterChatLanguageModel('test-model', settings, {
+      provider: 'langrouter.chat',
+      url: () => 'https://api.langrouter.ai/chat/completions',
+      headers: () => ({}),
+      compatibility: 'strict',
+      fetch: global.fetch,
+    });
+
+    const result = await model.doGenerate({
+      prompt: [
+        {
+          role: 'user',
+          content: [{ type: 'text', text: 'Hello' }],
+        },
+      ],
+      maxOutputTokens: 100,
+    });
+
+    // Verify usage.raw contains the original snake_case format from the API
+    expect(result.usage.raw).toBeDefined();
+    expect(result.usage.raw).toMatchObject({
+      prompt_tokens: 10,
+      prompt_tokens_details: {
+        cached_tokens: 5,
+      },
+      completion_tokens: 20,
+      completion_tokens_details: {
+        reasoning_tokens: 8,
+      },
+      total_tokens: 30,
+      cost: 0.0015,
+      cost_details: {
+        upstream_inference_cost: 0.0019,
+      },
+    });
+  });
+
+  it('should compute inputTokens.noCache and outputTokens.text from detail fields', async () => {
+    prepareJsonResponse();
+
+    const model = new LangRouterChatLanguageModel(
+      'test-model',
+      {},
+      {
+        provider: 'langrouter.chat',
+        url: () => 'https://api.langrouter.ai/chat/completions',
+        headers: () => ({}),
+        compatibility: 'strict',
+        fetch: global.fetch,
+      },
+    );
+
+    const result = await model.doGenerate({
+      prompt: [
+        {
+          role: 'user',
+          content: [{ type: 'text', text: 'Hello' }],
+        },
+      ],
+    });
+
+    expect(result.usage.inputTokens).toStrictEqual({
+      total: 10,
+      noCache: 5,
+      cacheRead: 5,
+      cacheWrite: undefined,
+    });
+    expect(result.usage.outputTokens).toStrictEqual({
+      total: 20,
+      text: 12,
+      reasoning: 8,
+    });
+  });
+
+  it('should set noCache equal to total and cacheRead to 0 when no detail fields present', async () => {
+    server.urls['https://api.langrouter.ai/chat/completions']!.response = {
+      type: 'json-value',
+      body: {
+        id: 'test-id',
+        model: 'test-model',
+        choices: [
+          {
+            message: { role: 'assistant', content: 'Hello' },
+            index: 0,
+            finish_reason: 'stop',
+          },
+        ],
+        usage: {
+          prompt_tokens: 15,
+          completion_tokens: 25,
+          total_tokens: 40,
+        },
+      },
+    };
+
+    const model = new LangRouterChatLanguageModel(
+      'test-model',
+      {},
+      {
+        provider: 'langrouter.chat',
+        url: () => 'https://api.langrouter.ai/chat/completions',
+        headers: () => ({}),
+        compatibility: 'strict',
+        fetch: global.fetch,
+      },
+    );
+
+    const result = await model.doGenerate({
+      prompt: [
+        {
+          role: 'user',
+          content: [{ type: 'text', text: 'Hello' }],
+        },
+      ],
+    });
+
+    expect(result.usage.inputTokens).toStrictEqual({
+      total: 15,
+      noCache: 15,
+      cacheRead: 0,
+      cacheWrite: undefined,
+    });
+    expect(result.usage.outputTokens).toStrictEqual({
+      total: 25,
+      text: 25,
+      reasoning: 0,
+    });
+  });
+
+  it('should pass through cache_write_tokens when present in response', async () => {
+    server.urls['https://api.langrouter.ai/chat/completions']!.response = {
+      type: 'json-value',
+      body: {
+        id: 'test-id',
+        model: 'test-model',
+        choices: [
+          {
+            message: { role: 'assistant', content: 'Hello' },
+            index: 0,
+            finish_reason: 'stop',
+          },
+        ],
+        usage: {
+          prompt_tokens: 100,
+          prompt_tokens_details: {
+            cached_tokens: 20,
+            cache_write_tokens: 30,
+          },
+          completion_tokens: 50,
+          completion_tokens_details: {
+            reasoning_tokens: 10,
+          },
+          total_tokens: 150,
+        },
+      },
+    };
+
+    const model = new LangRouterChatLanguageModel(
+      'test-model',
+      {},
+      {
+        provider: 'langrouter.chat',
+        url: () => 'https://api.langrouter.ai/chat/completions',
+        headers: () => ({}),
+        compatibility: 'strict',
+        fetch: global.fetch,
+      },
+    );
+
+    const result = await model.doGenerate({
+      prompt: [
+        {
+          role: 'user',
+          content: [{ type: 'text', text: 'Hello' }],
+        },
+      ],
+    });
+
+    expect(result.usage.inputTokens).toStrictEqual({
+      total: 100,
+      noCache: 80,
+      cacheRead: 20,
+      cacheWrite: 30,
+    });
+    expect(result.usage.outputTokens).toStrictEqual({
+      total: 50,
+      text: 40,
+      reasoning: 10,
+    });
+  });
+
+  it('should set usage.raw to undefined when no usage data in response', async () => {
+    prepareJsonResponse(false);
+
+    const settings: LangRouterChatSettings = {};
+
+    const model = new LangRouterChatLanguageModel('test-model', settings, {
+      provider: 'langrouter.chat',
+      url: () => 'https://api.langrouter.ai/chat/completions',
+      headers: () => ({}),
+      compatibility: 'strict',
+      fetch: global.fetch,
+    });
+
+    const result = await model.doGenerate({
+      prompt: [
+        {
+          role: 'user',
+          content: [{ type: 'text', text: 'Hello' }],
+        },
+      ],
+      maxOutputTokens: 100,
+    });
+
+    // When no usage data, raw should be undefined
+    expect(result.usage.raw).toBeUndefined();
+  });
+});

@@ -1,0 +1,12 @@
+node_modules
+dist
+./internal
+
+.env.e2e*
+
+.turbo/
+
+# Reference repositories (git submodules)
+reference/
+
+/tmp
