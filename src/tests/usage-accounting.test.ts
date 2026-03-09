@@ -6,7 +6,7 @@ import { LangRouterChatLanguageModel } from '../chat';
 
 describe('LangRouter Usage Accounting', () => {
   const server = createTestServer({
-    'https://api.langrouter.ai/chat/completions': {
+    'https://api.langrouter.ai/v1/chat/completions': {
       response: { type: 'json-value', body: {} },
     },
   });
@@ -48,7 +48,7 @@ describe('LangRouter Usage Accounting', () => {
         : undefined,
     };
 
-    server.urls['https://api.langrouter.ai/chat/completions']!.response = {
+    server.urls['https://api.langrouter.ai/v1/chat/completions']!.response = {
       type: 'json-value',
       body: response,
     };
@@ -64,7 +64,7 @@ describe('LangRouter Usage Accounting', () => {
 
     const model = new LangRouterChatLanguageModel('test-model', settings, {
       provider: 'langrouter.chat',
-      url: () => 'https://api.langrouter.ai/chat/completions',
+      url: () => 'https://api.langrouter.ai/v1/chat/completions',
       headers: () => ({}),
       compatibility: 'strict',
       fetch: global.fetch,
@@ -101,7 +101,7 @@ describe('LangRouter Usage Accounting', () => {
 
     const model = new LangRouterChatLanguageModel('test-model', settings, {
       provider: 'langrouter.chat',
-      url: () => 'https://api.langrouter.ai/chat/completions',
+      url: () => 'https://api.langrouter.ai/v1/chat/completions',
       headers: () => ({}),
       compatibility: 'strict',
       fetch: global.fetch,
@@ -155,7 +155,7 @@ describe('LangRouter Usage Accounting', () => {
 
     const model = new LangRouterChatLanguageModel('test-model', settings, {
       provider: 'langrouter.chat',
-      url: () => 'https://api.langrouter.ai/chat/completions',
+      url: () => 'https://api.langrouter.ai/v1/chat/completions',
       headers: () => ({}),
       compatibility: 'strict',
       fetch: global.fetch,
@@ -214,7 +214,7 @@ describe('LangRouter Usage Accounting', () => {
       },
     };
 
-    server.urls['https://api.langrouter.ai/chat/completions']!.response = {
+    server.urls['https://api.langrouter.ai/v1/chat/completions']!.response = {
       type: 'json-value',
       body: response,
     };
@@ -225,7 +225,7 @@ describe('LangRouter Usage Accounting', () => {
 
     const model = new LangRouterChatLanguageModel('test-model', settings, {
       provider: 'langrouter.chat',
-      url: () => 'https://api.langrouter.ai/chat/completions',
+      url: () => 'https://api.langrouter.ai/v1/chat/completions',
       headers: () => ({}),
       compatibility: 'strict',
       fetch: global.fetch,
@@ -286,7 +286,7 @@ describe('LangRouter Usage Accounting', () => {
       },
     };
 
-    server.urls['https://api.langrouter.ai/chat/completions']!.response = {
+    server.urls['https://api.langrouter.ai/v1/chat/completions']!.response = {
       type: 'json-value',
       body: response,
     };
@@ -297,7 +297,7 @@ describe('LangRouter Usage Accounting', () => {
 
     const model = new LangRouterChatLanguageModel('test-model', settings, {
       provider: 'langrouter.chat',
-      url: () => 'https://api.langrouter.ai/chat/completions',
+      url: () => 'https://api.langrouter.ai/v1/chat/completions',
       headers: () => ({}),
       compatibility: 'strict',
       fetch: global.fetch,
@@ -337,7 +337,7 @@ describe('LangRouter Usage Accounting', () => {
 
     const model = new LangRouterChatLanguageModel('test-model', settings, {
       provider: 'langrouter.chat',
-      url: () => 'https://api.langrouter.ai/chat/completions',
+      url: () => 'https://api.langrouter.ai/v1/chat/completions',
       headers: () => ({}),
       compatibility: 'strict',
       fetch: global.fetch,
@@ -380,7 +380,7 @@ describe('LangRouter Usage Accounting', () => {
       {},
       {
         provider: 'langrouter.chat',
-        url: () => 'https://api.langrouter.ai/chat/completions',
+        url: () => 'https://api.langrouter.ai/v1/chat/completions',
         headers: () => ({}),
         compatibility: 'strict',
         fetch: global.fetch,
@@ -410,7 +410,7 @@ describe('LangRouter Usage Accounting', () => {
   });
 
   it('should set noCache equal to total and cacheRead to 0 when no detail fields present', async () => {
-    server.urls['https://api.langrouter.ai/chat/completions']!.response = {
+    server.urls['https://api.langrouter.ai/v1/chat/completions']!.response = {
       type: 'json-value',
       body: {
         id: 'test-id',
@@ -435,7 +435,7 @@ describe('LangRouter Usage Accounting', () => {
       {},
       {
         provider: 'langrouter.chat',
-        url: () => 'https://api.langrouter.ai/chat/completions',
+        url: () => 'https://api.langrouter.ai/v1/chat/completions',
         headers: () => ({}),
         compatibility: 'strict',
         fetch: global.fetch,
@@ -465,7 +465,7 @@ describe('LangRouter Usage Accounting', () => {
   });
 
   it('should pass through cache_write_tokens when present in response', async () => {
-    server.urls['https://api.langrouter.ai/chat/completions']!.response = {
+    server.urls['https://api.langrouter.ai/v1/chat/completions']!.response = {
       type: 'json-value',
       body: {
         id: 'test-id',
@@ -497,7 +497,7 @@ describe('LangRouter Usage Accounting', () => {
       {},
       {
         provider: 'langrouter.chat',
-        url: () => 'https://api.langrouter.ai/chat/completions',
+        url: () => 'https://api.langrouter.ai/v1/chat/completions',
         headers: () => ({}),
         compatibility: 'strict',
         fetch: global.fetch,
@@ -533,7 +533,7 @@ describe('LangRouter Usage Accounting', () => {
 
     const model = new LangRouterChatLanguageModel('test-model', settings, {
       provider: 'langrouter.chat',
-      url: () => 'https://api.langrouter.ai/chat/completions',
+      url: () => 'https://api.langrouter.ai/v1/chat/completions',
       headers: () => ({}),
       compatibility: 'strict',
       fetch: global.fetch,

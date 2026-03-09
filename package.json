@@ -1,6 +1,6 @@
 {
   "name": "@langrouter/ai-sdk-provider",
-  "version": "2.2.5",
+  "version": "0.9.9",
   "license": "Apache-2.0",
   "pnpm": {
     "overrides": {

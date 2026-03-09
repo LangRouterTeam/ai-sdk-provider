@@ -155,7 +155,7 @@ function isTextDeltaPart(part: LanguageModelV3StreamPart): part is Extract<
 
 describe('doGenerate', () => {
   const server = createTestServer({
-    'https://langrouter.ai/api/v1/chat/completions': {
+    'https://api.langrouter.ai/v1/chat/completions': {
       response: { type: 'json-value', body: {} },
     },
   });
@@ -203,7 +203,7 @@ describe('doGenerate', () => {
     } | null;
     finish_reason?: string;
   } = {}) {
-    server.urls['https://langrouter.ai/api/v1/chat/completions']!.response = {
+    server.urls['https://api.langrouter.ai/v1/chat/completions']!.response = {
       type: 'json-value',
       body: {
         id: 'chatcmpl-95ZTZkhr0mHNKqerQfiwkuox3PHAd',
@@ -916,7 +916,7 @@ describe('doGenerate', () => {
 
 describe('doStream', () => {
   const server = createTestServer({
-    'https://langrouter.ai/api/v1/chat/completions': {
+    'https://api.langrouter.ai/v1/chat/completions': {
       response: { type: 'json-value', body: {} },
     },
   });
@@ -962,7 +962,7 @@ describe('doStream', () => {
     } | null;
     finish_reason?: string;
   }) {
-    server.urls['https://langrouter.ai/api/v1/chat/completions']!.response = {
+    server.urls['https://api.langrouter.ai/v1/chat/completions']!.response = {
       type: 'stream-chunks',
       chunks: [
         `data: {"id":"chatcmpl-96aZqmeDpA9IPD6tACY8djkMsJCMP","object":"chat.completion.chunk","created":1702657020,"model":"gpt-3.5-turbo-0613",` +
@@ -1174,7 +1174,7 @@ describe('doStream', () => {
   it('should prioritize reasoning_details over reasoning when both are present in streaming', async () => {
     // This test verifies that when the API returns both 'reasoning' and 'reasoning_details' fields,
     // we prioritize reasoning_details and ignore the reasoning field to avoid duplicates.
-    server.urls['https://langrouter.ai/api/v1/chat/completions']!.response = {
+    server.urls['https://api.langrouter.ai/v1/chat/completions']!.response = {
       type: 'stream-chunks',
       chunks: [
         // First chunk: both reasoning and reasoning_details with different content
@@ -1308,7 +1308,7 @@ describe('doStream', () => {
   it('should emit reasoning_details in providerMetadata for all reasoning delta chunks', async () => {
     // This test verifies that reasoning_details are included in providerMetadata
     // for all reasoning-delta chunks, enabling users to accumulate them for multi-turn conversations
-    server.urls['https://langrouter.ai/api/v1/chat/completions']!.response = {
+    server.urls['https://api.langrouter.ai/v1/chat/completions']!.response = {
       type: 'stream-chunks',
       chunks: [
         // First chunk: reasoning_details with Text type
@@ -1412,7 +1412,7 @@ describe('doStream', () => {
   it('should maintain correct reasoning order when content comes after reasoning (issue #7824)', async () => {
     // This test reproduces the issue where reasoning appears first but then gets "pushed down"
     // by content that comes later in the stream
-    server.urls['https://langrouter.ai/api/v1/chat/completions']!.response = {
+    server.urls['https://api.langrouter.ai/v1/chat/completions']!.response = {
       type: 'stream-chunks',
       chunks: [
         // First chunk: Start with reasoning
@@ -1491,7 +1491,7 @@ describe('doStream', () => {
   });
 
   it('should stream tool deltas', async () => {
-    server.urls['https://langrouter.ai/api/v1/chat/completions']!.response = {
+    server.urls['https://api.langrouter.ai/v1/chat/completions']!.response = {
       type: 'stream-chunks',
       chunks: [
         `data: {"id":"chatcmpl-96aZqmeDpA9IPD6tACY8djkMsJCMP","object":"chat.completion.chunk","created":1711357598,"model":"gpt-3.5-turbo-0125",` +
@@ -1711,7 +1711,7 @@ describe('doStream', () => {
   });
 
   it('should stream tool call that is sent in one chunk', async () => {
-    server.urls['https://langrouter.ai/api/v1/chat/completions']!.response = {
+    server.urls['https://api.langrouter.ai/v1/chat/completions']!.response = {
       type: 'stream-chunks',
       chunks: [
         `data: {"id":"chatcmpl-96aZqmeDpA9IPD6tACY8djkMsJCMP","object":"chat.completion.chunk","created":1711357598,"model":"gpt-3.5-turbo-0125",` +
@@ -1829,7 +1829,7 @@ describe('doStream', () => {
   });
 
   it('should override finishReason to tool-calls in streaming when tool calls and encrypted reasoning are present', async () => {
-    server.urls['https://langrouter.ai/api/v1/chat/completions']!.response = {
+    server.urls['https://api.langrouter.ai/v1/chat/completions']!.response = {
       type: 'stream-chunks',
       chunks: [
         // First chunk: reasoning_details with encrypted data
@@ -1892,7 +1892,7 @@ describe('doStream', () => {
   });
 
   it('should stream images', async () => {
-    server.urls['https://langrouter.ai/api/v1/chat/completions']!.response = {
+    server.urls['https://api.langrouter.ai/v1/chat/completions']!.response = {
       type: 'stream-chunks',
       chunks: [
         `data: {"id":"chatcmpl-96aZqmeDpA9IPD6tACY8djkMsJCMP","object":"chat.completion.chunk","created":1711357598,"model":"gpt-3.5-turbo-0125",` +
@@ -1966,7 +1966,7 @@ describe('doStream', () => {
   });
 
   it('should handle error stream parts', async () => {
-    server.urls['https://langrouter.ai/api/v1/chat/completions']!.response = {
+    server.urls['https://api.langrouter.ai/v1/chat/completions']!.response = {
       type: 'stream-chunks',
       chunks: [
         `data: {"error":{"message": "The server had an error processing your request. Sorry about that! You can retry your request, or contact us through our ` +
@@ -2019,7 +2019,7 @@ describe('doStream', () => {
   });
 
   it('should handle unparsable stream parts', async () => {
-    server.urls['https://langrouter.ai/api/v1/chat/completions']!.response = {
+    server.urls['https://api.langrouter.ai/v1/chat/completions']!.response = {
       type: 'stream-chunks',
       chunks: ['data: {unparsable}\n\n', 'data: [DONE]\n\n'],
     };
@@ -2274,7 +2274,7 @@ describe('doStream', () => {
   it('should include file annotations in finish metadata when streamed', async () => {
     // This test verifies that file annotations from FileParserPlugin are accumulated
     // during streaming and included in the finish event's providerMetadata
-    server.urls['https://langrouter.ai/api/v1/chat/completions']!.response = {
+    server.urls['https://api.langrouter.ai/v1/chat/completions']!.response = {
       type: 'stream-chunks',
       chunks: [
         // First chunk with role and content
@@ -2343,7 +2343,7 @@ describe('doStream', () => {
 
   it('should accumulate multiple file annotations from stream', async () => {
     // This test verifies that multiple file annotations are accumulated correctly
-    server.urls['https://langrouter.ai/api/v1/chat/completions']!.response = {
+    server.urls['https://api.langrouter.ai/v1/chat/completions']!.response = {
       type: 'stream-chunks',
       chunks: [
         // First chunk with content
@@ -2411,7 +2411,7 @@ describe('doStream', () => {
     // the accumulated reasoning_details (with signature) in the reasoning-end event.
     // Without this fix, the saved reasoning part has no signature, and the next turn
     // fails with "Invalid signature in thinking block".
-    server.urls['https://langrouter.ai/api/v1/chat/completions']!.response = {
+    server.urls['https://api.langrouter.ai/v1/chat/completions']!.response = {
       type: 'stream-chunks',
       chunks: [
         // First chunk: reasoning starts, NO signature yet
@@ -2503,7 +2503,7 @@ describe('doStream', () => {
 
 describe('debug settings', () => {
   const server = createTestServer({
-    'https://langrouter.ai/api/v1/chat/completions': {
+    'https://api.langrouter.ai/v1/chat/completions': {
       response: { type: 'json-value', body: {} },
     },
   });
@@ -2513,7 +2513,7 @@ describe('debug settings', () => {
   afterAll(() => server.server.stop());
 
   function prepareJsonResponse({ content = '' }: { content?: string } = {}) {
-    server.urls['https://langrouter.ai/api/v1/chat/completions']!.response = {
+    server.urls['https://api.langrouter.ai/v1/chat/completions']!.response = {
       type: 'json-value',
       body: {
         id: 'chatcmpl-test',
@@ -2575,7 +2575,7 @@ describe('debug settings', () => {
 
 describe('web search citations', () => {
   const server = createTestServer({
-    'https://langrouter.ai/api/v1/chat/completions': {
+    'https://api.langrouter.ai/v1/chat/completions': {
       response: { type: 'json-value', body: {} },
     },
   });
@@ -2586,7 +2586,7 @@ describe('web search citations', () => {
 
   it('should handle url_citation with missing title field in non-streaming response', async () => {
     // Some upstream providers return url_citation without title field
-    server.urls['https://langrouter.ai/api/v1/chat/completions']!.response = {
+    server.urls['https://api.langrouter.ai/v1/chat/completions']!.response = {
       type: 'json-value',
       body: {
         id: 'chatcmpl-web-search',
@@ -2641,7 +2641,7 @@ describe('web search citations', () => {
 
   it('should handle url_citation with missing start_index and end_index in non-streaming response', async () => {
     // Some providers may omit index fields
-    server.urls['https://langrouter.ai/api/v1/chat/completions']!.response = {
+    server.urls['https://api.langrouter.ai/v1/chat/completions']!.response = {
       type: 'json-value',
       body: {
         id: 'chatcmpl-web-search',
@@ -2695,7 +2695,7 @@ describe('web search citations', () => {
 
   it('should handle url_citation with all optional fields missing in streaming response', async () => {
     // Test streaming with minimal url_citation (only url present)
-    server.urls['https://langrouter.ai/api/v1/chat/completions']!.response = {
+    server.urls['https://api.langrouter.ai/v1/chat/completions']!.response = {
       type: 'stream-chunks',
       chunks: [
         `data: {"id":"chatcmpl-web-search","object":"chat.completion.chunk","created":1711357598,"model":"anthropic/claude-3.5-sonnet:online",` +
@@ -2742,7 +2742,7 @@ describe('web search citations', () => {
 
   it('should handle complete url_citation with all fields present', async () => {
     // Verify normal case still works
-    server.urls['https://langrouter.ai/api/v1/chat/completions']!.response = {
+    server.urls['https://api.langrouter.ai/v1/chat/completions']!.response = {
       type: 'json-value',
       body: {
         id: 'chatcmpl-web-search',
@@ -2803,7 +2803,7 @@ describe('web search citations', () => {
   });
 
   it('should default startIndex and endIndex to 0 when missing', async () => {
-    server.urls['https://langrouter.ai/api/v1/chat/completions']!.response = {
+    server.urls['https://api.langrouter.ai/v1/chat/completions']!.response = {
       type: 'json-value',
       body: {
         id: 'chatcmpl-web-search',
@@ -2864,7 +2864,7 @@ describe('web search citations', () => {
 
 describe('includeRawChunks', () => {
   const server = createTestServer({
-    'https://langrouter.ai/api/v1/chat/completions': {
+    'https://api.langrouter.ai/v1/chat/completions': {
       response: { type: 'json-value', body: {} },
     },
   });
@@ -2874,7 +2874,7 @@ describe('includeRawChunks', () => {
   afterAll(() => server.server.stop());
 
   function prepareStreamResponse({ content }: { content: string[] }) {
-    server.urls['https://langrouter.ai/api/v1/chat/completions']!.response = {
+    server.urls['https://api.langrouter.ai/v1/chat/completions']!.response = {
       type: 'stream-chunks',
       chunks: [
         `data: {"id":"chatcmpl-test","object":"chat.completion.chunk","created":1702657020,"model":"gpt-3.5-turbo-0613","choices":[{"index":0,"delta":{"role":"assistant","content":""},"finish_reason":null}]}\n\n`,
@@ -2960,7 +2960,7 @@ describe('includeRawChunks', () => {
   });
 
   it('should emit raw chunk even when parsing fails (for debugging malformed responses)', async () => {
-    server.urls['https://langrouter.ai/api/v1/chat/completions']!.response = {
+    server.urls['https://api.langrouter.ai/v1/chat/completions']!.response = {
       type: 'stream-chunks',
       chunks: ['data: {unparsable}\n\n', 'data: [DONE]\n\n'],
     };

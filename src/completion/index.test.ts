@@ -52,7 +52,7 @@ const model = provider.completion('openai/gpt-3.5-turbo-instruct');
 
 describe('doGenerate', () => {
   const server = createTestServer({
-    'https://langrouter.ai/api/v1/completions': {
+    'https://api.langrouter.ai/v1/completions': {
       response: { type: 'json-value', body: {} },
     },
   });
@@ -96,7 +96,7 @@ describe('doGenerate', () => {
     finish_reason?: string;
     provider?: string;
   }) {
-    server.urls['https://langrouter.ai/api/v1/completions']!.response = {
+    server.urls['https://api.langrouter.ai/v1/completions']!.response = {
       type: 'json-value',
       body: {
         id: 'cmpl-96cAM1v77r4jXa4qb2NSmRREV5oWB',
@@ -435,7 +435,7 @@ describe('doGenerate', () => {
 
 describe('doStream', () => {
   const server = createTestServer({
-    'https://langrouter.ai/api/v1/completions': {
+    'https://api.langrouter.ai/v1/completions': {
       response: { type: 'stream-chunks', chunks: [] },
     },
   });
@@ -477,7 +477,7 @@ describe('doStream', () => {
     } | null;
     finish_reason?: string;
   }) {
-    server.urls['https://langrouter.ai/api/v1/completions']!.response = {
+    server.urls['https://api.langrouter.ai/v1/completions']!.response = {
       type: 'stream-chunks',
       chunks: [
         ...content.map((text) => {
@@ -671,7 +671,7 @@ describe('doStream', () => {
   });
 
   it('should handle error stream parts', async () => {
-    server.urls['https://langrouter.ai/api/v1/completions']!.response = {
+    server.urls['https://api.langrouter.ai/v1/completions']!.response = {
       type: 'stream-chunks',
       chunks: [
         `data: {"error":{"message": "The server had an error processing your request. Sorry about that! You can retry your request, or contact us through our ` +
@@ -724,7 +724,7 @@ describe('doStream', () => {
   });
 
   it('should handle unparsable stream parts', async () => {
-    server.urls['https://langrouter.ai/api/v1/completions']!.response = {
+    server.urls['https://api.langrouter.ai/v1/completions']!.response = {
       type: 'stream-chunks',
       chunks: ['data: {unparsable}\n\n', 'data: [DONE]\n\n'],
     };
@@ -836,7 +836,7 @@ describe('doStream', () => {
 
 describe('includeRawChunks', () => {
   const server = createTestServer({
-    'https://langrouter.ai/api/v1/completions': {
+    'https://api.langrouter.ai/v1/completions': {
       response: { type: 'stream-chunks', chunks: [] },
     },
   });
@@ -846,7 +846,7 @@ describe('includeRawChunks', () => {
   afterAll(() => server.server.stop());
 
   function prepareStreamResponse({ content }: { content: string[] }) {
-    server.urls['https://langrouter.ai/api/v1/completions']!.response = {
+    server.urls['https://api.langrouter.ai/v1/completions']!.response = {
       type: 'stream-chunks',
       chunks: [
         ...content.map(
@@ -931,7 +931,7 @@ describe('includeRawChunks', () => {
   });
 
   it('should emit raw chunk even when parsing fails (for debugging malformed responses)', async () => {
-    server.urls['https://langrouter.ai/api/v1/completions']!.response = {
+    server.urls['https://api.langrouter.ai/v1/completions']!.response = {
       type: 'stream-chunks',
       chunks: ['data: {unparsable}\n\n', 'data: [DONE]\n\n'],
     };

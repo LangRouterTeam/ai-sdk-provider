@@ -7,7 +7,7 @@ import { LangRouterChatLanguageModel } from '../chat';
 
 describe('LangRouter Streaming Usage Accounting', () => {
   const server = createTestServer({
-    'https://api.langrouter.ai/chat/completions': {
+    'https://api.langrouter.ai/v1/chat/completions': {
       response: { type: 'stream-chunks', chunks: [] },
     },
   });
@@ -41,7 +41,7 @@ describe('LangRouter Streaming Usage Accounting', () => {
 
     chunks.push('data: [DONE]\n\n');
 
-    server.urls['https://api.langrouter.ai/chat/completions']!.response = {
+    server.urls['https://api.langrouter.ai/v1/chat/completions']!.response = {
       type: 'stream-chunks',
       chunks,
     };
@@ -260,7 +260,7 @@ describe('LangRouter Streaming Usage Accounting', () => {
   });
 
   it('should set noCache equal to total when no detail fields in stream', async () => {
-    server.urls['https://api.langrouter.ai/chat/completions']!.response = {
+    server.urls['https://api.langrouter.ai/v1/chat/completions']!.response = {
       type: 'stream-chunks',
       chunks: [
         `data: {"id":"test-id","model":"test-model","choices":[{"delta":{"content":"Hello"},"index":0}]}\n\n`,
@@ -315,7 +315,7 @@ describe('LangRouter Streaming Usage Accounting', () => {
   });
 
   it('should pass through cache_write_tokens in stream when present', async () => {
-    server.urls['https://api.langrouter.ai/chat/completions']!.response = {
+    server.urls['https://api.langrouter.ai/v1/chat/completions']!.response = {
       type: 'stream-chunks',
       chunks: [
         `data: {"id":"test-id","model":"test-model","choices":[{"delta":{"content":"Hello"},"index":0}]}\n\n`,
@@ -381,7 +381,7 @@ describe('LangRouter Streaming Usage Accounting', () => {
 
     const model = new LangRouterChatLanguageModel('test-model', settings, {
       provider: 'langrouter.chat',
-      url: () => 'https://api.langrouter.ai/chat/completions',
+      url: () => 'https://api.langrouter.ai/v1/chat/completions',
       headers: () => ({}),
       compatibility: 'strict',
       fetch: global.fetch,

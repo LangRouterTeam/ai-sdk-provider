@@ -21,7 +21,7 @@ const TEST_MESSAGES: ModelMessage[] = [
 
 describe('providerOptions', () => {
   const server = createTestServer({
-    'https://langrouter.ai/api/v1/chat/completions': {
+    'https://api.langrouter.ai/v1/chat/completions': {
       response: {
         type: 'stream-chunks',
         chunks: [],

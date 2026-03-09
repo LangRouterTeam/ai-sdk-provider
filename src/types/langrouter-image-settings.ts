@@ -1,6 +1,6 @@
 import type { LangRouterSharedSettings } from '..';
 
-// https://langrouter.ai/api/v1/models
+// https://api.langrouter.ai/v1/models
 export type LangRouterImageModelId = string;
 
 export type LangRouterImageSettings = {

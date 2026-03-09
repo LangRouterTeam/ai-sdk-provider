@@ -12,7 +12,7 @@ import type {
   Quantization,
 } from './langrouter-api-types';
 
-// https://langrouter.ai/api/v1/models
+// https://api.langrouter.ai/v1/models
 export type LangRouterChatModelId = string;
 
 export type LangRouterChatSettings = {

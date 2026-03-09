@@ -141,7 +141,7 @@ export function createLangRouter(
 ): LangRouterProvider {
   const baseURL =
     withoutTrailingSlash(options.baseURL ?? options.baseUrl) ??
-    'https://langrouter.ai/api/v1';
+    'https://api.langrouter.ai/v1';
 
   // we default to compatible, because strict breaks providers like Groq:
   const compatibility = options.compatibility ?? 'compatible';

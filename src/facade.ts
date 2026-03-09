@@ -23,7 +23,7 @@ import { LangRouterEmbeddingModel } from './embedding';
 export class LangRouter {
   /**
 Use a different URL prefix for API calls, e.g. to use proxy servers.
-The default prefix is `https://langrouter.ai/api/v1`.
+The default prefix is `https://api.langrouter.ai/v1`.
    */
   readonly baseURL: string;
 
@@ -49,7 +49,7 @@ Custom headers to include in the requests.
   constructor(options: LangRouterProviderSettings = {}) {
     this.baseURL =
       withoutTrailingSlash(options.baseURL ?? options.baseUrl) ??
-      'https://langrouter.ai/api/v1';
+      'https://api.langrouter.ai/v1';
     this.apiKey = options.apiKey;
     this.headers = options.headers;
     this.api_keys = options.api_keys;
